@@ -441,11 +441,36 @@ def build_prompt(payload: dict[str, Any], brand: str, ideas_per_source: int) -> 
     return "\n".join(lines) + "\n"
 
 
+def load_wiki_text(path: str | None) -> str:
+    """Load the shared Meme LLM Wiki without depending on another package."""
+    if not path:
+        return ""
+    root = Path(path)
+    ordered = [
+        root / "brand" / "essence.md",
+        root / "brand" / "audience.md",
+        root / "brand" / "voice.md",
+        root / "brand" / "off-limits.md",
+        root / "brand" / "applying.md",
+        root / "brand" / "anti-patterns.md",
+    ]
+    ordered += sorted((root / "formats").glob("*.md"))
+    return "\n\n---\n\n".join(
+        item.read_text(encoding="utf-8") for item in ordered if item.exists()
+    )
+
+
 def command_prompt(args: argparse.Namespace) -> int:
     payload = load_json(args.candidates, {})
     if not payload.get("candidates"):
         raise RuntimeError(f"no candidates found in {args.candidates}")
-    brand = Path(args.brand).read_text(encoding="utf-8") if args.brand else ""
+    brand_parts = []
+    if args.brand:
+        brand_parts.append(Path(args.brand).read_text(encoding="utf-8"))
+    wiki = load_wiki_text(args.wiki)
+    if wiki:
+        brand_parts.append("# Meme LLM Wiki\n\n" + wiki)
+    brand = "\n\n---\n\n".join(brand_parts)
     prompt = build_prompt(payload, brand, args.ideas_per_source)
     target = Path(args.output)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -490,6 +515,7 @@ def build_parser() -> argparse.ArgumentParser:
     prompt = commands.add_parser("prompt", help="turn ranked candidates into an ideation brief")
     prompt.add_argument("--candidates", required=True)
     prompt.add_argument("--brand")
+    prompt.add_argument("--wiki", help="Meme LLM Wiki directory to include in the brief")
     prompt.add_argument("--ideas-per-source", type=int, default=3)
     prompt.add_argument("--output", required=True)
     prompt.set_defaults(func=command_prompt)

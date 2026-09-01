@@ -1,61 +1,118 @@
-# Instagram Performance Ideation Skill
+# Creator Meme Toolkit
 
-A reusable Hermes skill for turning a creator's own Instagram performance data into new content ideas.
+A downloadable Hermes skill package that connects four parts of a creator workflow without mixing their data:
 
-It does **not** treat the most-liked post as the answer. It lets you choose the behavior you want—shares, saves, follows, or comments—then:
+```text
+Instagram API performance ──┐
+                            ├─> source selection ─> meme writing
+Approved external memes ─> Meme LLM Wiki ────────┘
+```
 
-1. fetches media and insights through Instagram API;
-2. joins metrics with labels describing what was actually inside the creative;
-3. filters tiny samples, exclusions, and overly recent posts;
-4. ranks source posts by outcome rate;
-5. deduplicates repeated subjects and rotates used sources;
-6. creates an ideation brief that preserves winning mechanisms without copying wording.
+## Included skills
 
-## Install as a Hermes skill
+| Skill | Purpose |
+|---|---|
+| `instagram-performance-ideation` | Fetch Instagram media/insights, rank reliable source posts, separate recent references, deduplicate topics, and create an ideation brief |
+| `meme-llm-wiki` | Initialize and maintain audience, voice, boundaries, reusable formats, approved originals, and corrections |
+| `meme-collector` | Handle `!밈`-style image/text submissions, propose a mechanism, and save only after explicit approval |
+| `meme-writer` | Turn ranked owned posts or approved external formats into materially new copy using the shared wiki |
 
-Clone this repository into your Hermes skills directory, or copy the repository directory there. Start a new Hermes session after installation so the skill index refreshes.
+The user's owned Instagram data stays in `posts.json`/`labels.json`. Collected external memes stay in `meme-wiki/raw/memes.json`. They meet only as writing context.
 
-## Quick start
+## One-package install
+
+```bash
+git clone https://github.com/tireddum-arch/instagram-performance-ideation.git creator-meme-toolkit
+cd creator-meme-toolkit
+python3 install.py
+```
+
+For an existing install:
+
+```bash
+python3 install.py --force
+```
+
+The default destination is `$HERMES_HOME/skills/creator-meme-toolkit`, or `~/.hermes/skills/creator-meme-toolkit` when `HERMES_HOME` is unset. Use `--dest` for a profile-specific skills directory.
+
+Start a new Hermes session or run `/reload-skills` after installation.
+
+## Hermes Skills Hub tap
+
+Hermes can discover the individual skills from this repository:
+
+```bash
+hermes skills tap add tireddum-arch/instagram-performance-ideation
+hermes skills install tireddum-arch/instagram-performance-ideation/skills/meme-llm-wiki
+hermes skills install tireddum-arch/instagram-performance-ideation/skills/meme-collector
+hermes skills install tireddum-arch/instagram-performance-ideation/skills/meme-writer
+hermes skills install tireddum-arch/instagram-performance-ideation/skills/instagram-performance-ideation
+```
+
+The clone-and-install route above is the single-package option.
+
+## First run
+
+Initialize the shared wiki in the creator's working directory:
+
+```bash
+python3 ~/.hermes/skills/creator-meme-toolkit/meme-llm-wiki/scripts/meme_wiki.py \
+  init --wiki meme-wiki
+```
+
+Fill in the generated `meme-wiki/brand/*.md` files with real audience, voice, and boundaries before writing.
+
+Configure Instagram access:
 
 ```bash
 export IG_ACCESS_TOKEN='your-token'
-export IG_GRAPH_VERSION='vXX.X'  # choose a currently supported Meta API version
+export IG_GRAPH_VERSION='vXX.X'  # use a currently supported Meta version
+```
 
-python3 scripts/instagram_ideation.py fetch \
+Fetch and rank:
+
+```bash
+IG_SKILL=~/.hermes/skills/creator-meme-toolkit/instagram-performance-ideation
+python3 "$IG_SKILL/scripts/instagram_ideation.py" fetch \
   --output data/posts.json --cache data/posts.json
 
-cp examples/labels.example.json data/labels.json
-# Replace the example with labels keyed by your real media IDs.
-
-python3 scripts/instagram_ideation.py rank \
+python3 "$IG_SKILL/scripts/instagram_ideation.py" rank \
   --posts data/posts.json --labels data/labels.json \
   --primary shares --secondary follows \
   --min-reach 3000 --min-age-days 90 --count 8 \
   --output data/candidates.json
 
-python3 scripts/instagram_ideation.py prompt \
+python3 "$IG_SKILL/scripts/instagram_ideation.py" prompt \
   --candidates data/candidates.json \
-  --brand templates/brand-context.md \
+  --wiki meme-wiki \
   --output data/ideation-brief.md
 ```
 
-Then ask Hermes to use the brief to draft ideas. Full workflow and editorial rules are in [`SKILL.md`](SKILL.md).
+Then ask Hermes to use `meme-writer` with the generated brief.
+
+## `!밈` flow
+
+1. Submit an image or text with `!밈` or “save this meme.”
+2. `meme-collector` transcribes it and proposes a reusable mechanism.
+3. The user approves or corrects the proposal.
+4. Only after approval, `meme-llm-wiki` stores the raw example and updates its format.
+5. Future writing loads the updated wiki.
+
+This repository provides the workflow, not a hard-coded Slack slash command. Any Hermes gateway can treat `!밈` as a natural-language trigger when the `meme-collector` skill is installed.
 
 ## Privacy
 
-`.gitignore` excludes `.env`, `data/`, downloaded media, tokens, and local output. The example data is synthetic and contains no account analytics.
-
-## Requirements
-
-- Python 3.10+
-- Instagram professional account and valid access token
-- A currently supported Instagram Graph API version
-- No third-party Python packages
+- Never commit `IG_ACCESS_TOKEN` or private analytics.
+- Instagram CDN URLs can expire; download only media the account owner is allowed to retain.
+- Do not publish the generated `data/` or `meme-wiki/raw/` directories by default.
+- The repository contains templates and synthetic examples only.
 
 ## Tests
 
 ```bash
 python3 -m unittest discover -s tests -v
+python3 -m unittest discover \
+  -s skills/instagram-performance-ideation/tests -v
 ```
 
 ## License

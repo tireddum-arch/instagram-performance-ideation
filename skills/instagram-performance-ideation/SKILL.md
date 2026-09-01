@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [instagram, analytics, content-strategy, ideation, creators]
-    related_skills: []
+    related_skills: [meme-llm-wiki, meme-writer, meme-collector]
 ---
 
 # Instagram Performance Ideation
@@ -140,6 +140,7 @@ Completion criterion: `candidates` contains diverse older sources and `recent_re
 python3 scripts/instagram_ideation.py prompt \
   --candidates data/candidates.json \
   --brand templates/brand-context.md \
+  --wiki meme-wiki \
   --ideas-per-source 3 \
   --output data/ideation-brief.md
 ```

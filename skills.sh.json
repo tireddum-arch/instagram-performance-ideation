@@ -1,0 +1,14 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "groupings": [
+    {
+      "title": "Creator Meme Toolkit",
+      "skills": [
+        "instagram-performance-ideation",
+        "meme-llm-wiki",
+        "meme-collector",
+        "meme-writer"
+      ]
+    }
+  ]
+}

@@ -108,6 +108,17 @@ class PromptTests(unittest.TestCase):
             MODULE.write_json(target, {"ok": True})
             self.assertEqual(json.loads(target.read_text()), {"ok": True})
 
+    def test_load_wiki_text_reads_brand_and_formats(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "brand").mkdir()
+            (root / "formats").mkdir()
+            (root / "brand" / "audience.md").write_text("audience fact")
+            (root / "formats" / "contrast.md").write_text("format fact")
+            text = MODULE.load_wiki_text(str(root))
+            self.assertIn("audience fact", text)
+            self.assertIn("format fact", text)
+
 
 if __name__ == "__main__":
     unittest.main()
