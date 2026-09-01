@@ -124,11 +124,11 @@ def parse_timestamp(value: str | None) -> datetime | None:
 
 
 def command_fetch(args: argparse.Namespace) -> int:
-    token = os.getenv("IG_ACCESS_TOKEN", "").strip()
+    token = sys.stdin.readline().strip() if args.token_stdin else ""
     version = args.api_version or os.getenv("IG_GRAPH_VERSION", "").strip()
     origin = args.api_origin or os.getenv("IG_API_ORIGIN", "https://graph.instagram.com")
     if not token:
-        raise RuntimeError("IG_ACCESS_TOKEN is required")
+        raise RuntimeError("an access token is required on stdin; pass --token-stdin")
     if not version:
         raise RuntimeError("IG_GRAPH_VERSION is required; choose a currently supported version from Meta docs")
     base = api_base(origin, version)
@@ -486,6 +486,7 @@ def build_parser() -> argparse.ArgumentParser:
     fetch = commands.add_parser("fetch", help="fetch media and insights from Instagram API")
     fetch.add_argument("--output", required=True)
     fetch.add_argument("--cache", help="existing posts JSON whose old metrics may be reused")
+    fetch.add_argument("--token-stdin", action="store_true", help="read the Instagram access token from stdin")
     fetch.add_argument("--api-version", help="overrides IG_GRAPH_VERSION")
     fetch.add_argument("--api-origin", help="overrides IG_API_ORIGIN")
     fetch.add_argument("--metrics-fresh-days", type=int, default=120)

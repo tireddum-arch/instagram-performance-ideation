@@ -73,8 +73,8 @@ Fetch and rank:
 
 ```bash
 IG_SKILL=~/.hermes/skills/creator-meme-toolkit/instagram-performance-ideation
-python3 "$IG_SKILL/scripts/instagram_ideation.py" fetch \
-  --output data/posts.json --cache data/posts.json
+printf '%s\n' "$IG_ACCESS_TOKEN" | python3 "$IG_SKILL/scripts/instagram_ideation.py" fetch \
+  --token-stdin --output data/posts.json --cache data/posts.json
 
 python3 "$IG_SKILL/scripts/instagram_ideation.py" rank \
   --posts data/posts.json --labels data/labels.json \

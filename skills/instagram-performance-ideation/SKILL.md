@@ -77,10 +77,11 @@ From the skill directory:
 ```bash
 export IG_ACCESS_TOKEN='...'
 export IG_GRAPH_VERSION='vXX.X'
-python3 scripts/instagram_ideation.py fetch \
-  --output data/posts.json \
-  --cache data/posts.json
+printf '%s\n' "$IG_ACCESS_TOKEN" | python3 scripts/instagram_ideation.py fetch \
+  --token-stdin --output data/posts.json --cache data/posts.json
 ```
+
+The token travels through stdin rather than process arguments or a script-level environment lookup.
 
 The fetcher:
 
