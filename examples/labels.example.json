@@ -1,0 +1,11 @@
+{
+  "SYNTHETIC_MEDIA_001": {
+    "content_text": "A synthetic example hook",
+    "topic": "creative routine",
+    "format": "one-line contrast",
+    "situation": "trying to create after work",
+    "mechanism": "a serious setup drops into a low-energy admission",
+    "send_to": "a tired creator sends it to another tired creator",
+    "exclude": false
+  }
+}
